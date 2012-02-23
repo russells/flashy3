@@ -1,0 +1,6 @@
+A flashy that runs three tri-colour LEDs.
+
+I want to use the ATtiny43U for this project (so I can run it off one AA
+battery using the 43U's boost converter), and it appears that 4k flash ROM is
+not enough to include QP-nano and the code required to run with that framework.
+So do it in plain C instead.
