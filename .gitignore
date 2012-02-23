@@ -1,0 +1,11 @@
+# Intermediate output files.
+/flashy3.map
+/flashy3.elf
+/flashy3.bin
+/*.d
+/*.o
+
+# Program file.
+/flashy3.hex
+
+/doc
