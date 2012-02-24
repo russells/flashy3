@@ -1,15 +1,22 @@
 
 
 #include <avr/io.h>
-#include "flashy3.h"
+#include <avr/pgmspace.h>
+#include "leds.h"
 
 
 static void setup_ports(void);
 
 
+volatile uint8_t *foo = (uint8_t *)88;
+
 int main(void)
 {
 	setup_ports();
+	init_leds();
+	for (int i=0; i< 9; i++) {
+		*foo = leds[i].bit;
+	}
 }
 
 
