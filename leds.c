@@ -43,12 +43,41 @@ void init_leds(void)
 }
 
 
+static void pin_high(uint8_t pinnumber);
+static void pin_low(uint8_t pinnumber);
+
+
 /**
  * Turn on one LED.
  *
  * @param lednumber the index of the LED to turn on.
  */
 void led_on(uint8_t lednumber)
+{
+#ifdef COMMON_ANODE
+	pin_low(lednumber);
+#else
+	pin_high(lednumber);
+#endif
+}
+
+
+/**
+ * Turn on one LED.
+ *
+ * @param lednumber the index of the LED to turn off.
+ */
+void led_off(uint8_t lednumber)
+{
+#ifdef COMMON_ANODE
+	pin_high(lednumber);
+#else
+	pin_low(lednumber);
+#endif
+}
+
+
+static void pin_high(uint8_t pinnumber)
 {
 	/*
 	 * This simple switch code is simpler and faster than code that
@@ -61,7 +90,7 @@ void led_on(uint8_t lednumber)
 	 * of structures, resulting in a call to the multiplication routine (to
 	 * multiply the index by the structure size), making it even slower.
 	 */
-	switch (lednumber) {
+	switch (pinnumber) {
 	case 0: LED1PORT |= (1 << LED1R); break;
 	case 1: LED1PORT |= (1 << LED1G); break;
 	case 2: LED1PORT |= (1 << LED1B); break;
@@ -75,14 +104,9 @@ void led_on(uint8_t lednumber)
 }
 
 
-/**
- * Turn on one LED.
- *
- * @param lednumber the index of the LED to turn off.
- */
-void led_off(uint8_t lednumber)
+static void pin_low(uint8_t pinnumber)
 {
-	switch (lednumber) {
+	switch (pinnumber) {
 	case 0: LED1PORT &= ~ (1 << LED1R); break;
 	case 1: LED1PORT &= ~ (1 << LED1G); break;
 	case 2: LED1PORT &= ~ (1 << LED1B); break;
