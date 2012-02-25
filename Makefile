@@ -26,10 +26,18 @@ AVR_PROGRAMMER_PORT = /dev/ttyACM0
 MCU ?= attiny43u
 AVRDUDE_MCU=t43u
 
+ifeq ($(STARTUP_REASON),yes)
+STARTUP_REASON_FLAG = -DSTARTUP_REASON
+else
+STARTUP_REASON_FLAG =
+endif
+
+
 EXTRA_LIBS =
 EXTRA_LINK_FLAGS = -Wl,-Map,$(PROGRAMMAPFILE),--cref
 CFLAGS  = -c -gdwarf-2 -std=gnu99 -Os -fsigned-char -fshort-enums \
 	-Wno-attributes \
+	$(STARTUP_REASON_FLAG) \
 	-mmcu=$(MCU) -Wall -Werror -o$@
 LINKFLAGS = -gdwarf-2 -Os -mmcu=$(MCU)
 
