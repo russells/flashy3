@@ -2,69 +2,6 @@
 #include "asserts.h"
 
 
-const struct FlashyLED leds[] PROGMEM = {
-	/* LED 1 */
-	{
-		&(LED1PORT),
-		&(LED1DDR),
-		(1 << LED1R),
-		~ (1 << LED1R),
-	},
-	{
-		&(LED1PORT),
-		&(LED1DDR),
-		(1 << LED1G),
-		~ (1 << LED1G),
-	},
-	{
-		&(LED1PORT),
-		&(LED1DDR),
-		(1 << LED1B),
-		~ (1 << LED1B),
-	},
-	/* LED 2 */
-	{
-		&(LED2PORT),
-		&(LED2DDR),
-		(1 << LED2R),
-		~ (1 << LED2R),
-	},
-	{
-		&(LED2PORT),
-		&(LED2DDR),
-		(1 << LED2G),
-		~ (1 << LED2G),
-	},
-	{
-		&(LED2PORT),
-		&(LED2DDR),
-		(1 << LED2B),
-		~ (1 << LED2B),
-	},
-	/* LED 3 */
-	{
-		&(LED3PORT),
-		&(LED3DDR),
-		(1 << LED3R),
-		~ (1 << LED3R),
-	},
-	{
-		&(LED3PORT),
-		&(LED3DDR),
-		(1 << LED3G),
-		~ (1 << LED3G),
-	},
-	{
-		&(LED3PORT),
-		&(LED3DDR),
-		(1 << LED3B),
-		~ (1 << LED3B),
-	},
-};
-
-ASSERT_COMPILE( sizeof(leds)/sizeof(struct FlashyLED) == NLEDS );
-
-
 const uint8_t pwm0[] PROGMEM = {
 	1, 2, 3, 4, 5, 8, 10, 12, 14, 17, 19, 17, 14, 12, 10, 8, 5, 4, 3, 2, 1, 0,
 };
@@ -92,7 +29,7 @@ const uint8_t *pwmSequences[] PROGMEM = {
 
 
 ASSERT_COMPILE( sizeof(pwmSequences) / sizeof(uint8_t **)
-		== NPWMSEQUENCES);
+		== NPWMS);
 
 
 volatile struct FlashyLEDStatus ledStatuses[NLEDS];
@@ -103,4 +40,57 @@ ASSERT_COMPILE( sizeof(ledStatuses) / sizeof(struct FlashyLEDStatus) == NLEDS);
 
 void init_leds(void)
 {
+}
+
+
+/**
+ * Turn on one LED.
+ *
+ * @param lednumber the index of the LED to turn on.
+ */
+void led_on(uint8_t lednumber)
+{
+	/*
+	 * This simple switch code is simpler and faster than code that
+	 * indirects through a data structure describing the LED port and bits.
+	 * The problem with keeping that information in a data structure is
+	 * that it can only contain addresses, and information about AVR IO
+	 * locations is lost.  This prevents the compiler from optimising the
+	 * |= and &= operations into single sbi and cbi instructions.  In
+	 * addition, the data structure code has to do indexing into an array
+	 * of structures, resulting in a call to the multiplication routine (to
+	 * multiply the index by the structure size), making it even slower.
+	 */
+	switch (lednumber) {
+	case 0: LED1PORT |= (1 << LED1R); break;
+	case 1: LED1PORT |= (1 << LED1G); break;
+	case 2: LED1PORT |= (1 << LED1B); break;
+	case 3: LED2PORT |= (1 << LED2R); break;
+	case 4: LED2PORT |= (1 << LED2G); break;
+	case 5: LED2PORT |= (1 << LED2B); break;
+	case 6: LED3PORT |= (1 << LED3R); break;
+	case 7: LED3PORT |= (1 << LED3G); break;
+	case 8: LED3PORT |= (1 << LED3B); break;
+	}
+}
+
+
+/**
+ * Turn on one LED.
+ *
+ * @param lednumber the index of the LED to turn off.
+ */
+void led_off(uint8_t lednumber)
+{
+	switch (lednumber) {
+	case 0: LED1PORT &= ~ (1 << LED1R); break;
+	case 1: LED1PORT &= ~ (1 << LED1G); break;
+	case 2: LED1PORT &= ~ (1 << LED1B); break;
+	case 3: LED2PORT &= ~ (1 << LED2R); break;
+	case 4: LED2PORT &= ~ (1 << LED2G); break;
+	case 5: LED2PORT &= ~ (1 << LED2B); break;
+	case 6: LED3PORT &= ~ (1 << LED3R); break;
+	case 7: LED3PORT &= ~ (1 << LED3G); break;
+	case 8: LED3PORT &= ~ (1 << LED3B); break;
+	}
 }

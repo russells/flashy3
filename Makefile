@@ -24,6 +24,7 @@ AVR_PROGRAMMER ?= stk500v2
 AVR_PROGRAMMER_PORT = /dev/ttyACM0
 
 MCU ?= attiny43u
+AVRDUDE_MCU=t43u
 
 EXTRA_LIBS =
 EXTRA_LINK_FLAGS = -Wl,-Map,$(PROGRAMMAPFILE),--cref
@@ -32,7 +33,7 @@ CFLAGS  = -c -gdwarf-2 -std=gnu99 -Os -fsigned-char -fshort-enums \
 	-mmcu=$(MCU) -Wall -Werror -o$@
 LINKFLAGS = -gdwarf-2 -Os -mmcu=$(MCU)
 
-SRCS = flashy3.c leds.c
+SRCS = flashy3.c leds.c timer.c
 
 OBJS = $(SRCS:.c=.o)
 DEPS = $(SRCS:.c=.d)

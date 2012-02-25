@@ -20,17 +20,9 @@
 #define LED3PORT PORTB
 #define LED3PIN  PINB
 #define LED3DDR  DDRB
-#define LED3R    0
-#define LED3G    1
-#define LED3B    2
-
-
-struct FlashyLED {
-	volatile uint8_t *port;	/**< Address of the PORTx register. */
-	volatile uint8_t *ddr;	/**< Address of the DDRx register. */
-	uint8_t bit;		/**< Bit mask in the registers. */
-	uint8_t notbit;		/**< Inverted bit mask in the registers. */
-};
+#define LED3R    1
+#define LED3G    2
+#define LED3B    3
 
 
 struct FlashyLEDStatus {
@@ -38,7 +30,7 @@ struct FlashyLEDStatus {
 	    this LED.  This increments every time that pwmCounter overflows,
 	    and when *pwmSequence is zero, we set pwmSequence to null and wait
 	    for the main loop to decide to turn on this LED again. */
-	uint8_t *pwmSequence;
+	const uint8_t *pwmSequence;
 	/** Number of ticks this LED is required to be on. */
 	uint8_t pwmOnTime;
 	/** Up counter for the PWM cycle.  This is set to zero every time that
@@ -49,15 +41,18 @@ struct FlashyLEDStatus {
 
 
 #define NLEDS 9
-#define NPWMSEQUENCES 5
+#define NPWMS 5
 
 
-extern const struct FlashyLED leds[] PROGMEM;
+#define MAX_PWM_TIME 20
+
+
 extern const uint8_t *pwmSequences[] PROGMEM;
 extern volatile struct FlashyLEDStatus ledStatuses[];
 
 
 void init_leds(void);
-
+void led_on(uint8_t led);
+void led_off(uint8_t led);
 
 #endif

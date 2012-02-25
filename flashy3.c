@@ -2,21 +2,92 @@
 
 #include <avr/io.h>
 #include <avr/pgmspace.h>
+#include <avr/interrupt.h>
+#include "cpu-speed.h"
+#include <util/delay.h>
 #include "leds.h"
+#include "timer.h"
+#include "toggle-pin.h"
 
 
 static void setup_ports(void);
 
 
-volatile uint8_t *foo = (uint8_t *)88;
-
 int main(void)
 {
+	uint8_t i;
+        uint8_t mcusr;
+
+        mcusr = MCUSR;
+        MCUSR = 0;
+
+	TOGGLE_BEGIN();
+
+        /* Indicate the reason for reset by flashing. */
+
+        /* One long flash first. */
+	TOGGLE_ON();
+        _delay_ms(500);
+	TOGGLE_OFF();
+        _delay_ms(500);
+
+        /* Now one or two flashes for each of the MCUSR bits.  The total length
+           of the one flash or the two flashes and the pause between them
+           should be the same. */
+        for (i=0; i<4; i++) {
+                if (mcusr & 0x1) {
+			TOGGLE_ON();
+                        _delay_ms(10);
+			TOGGLE_OFF();
+                        _delay_ms(180);
+			TOGGLE_ON();
+                        _delay_ms(10);
+			TOGGLE_OFF();
+                        _delay_ms(800);
+                        /* 10+180+10+800 = 1000 */
+                } else {
+			TOGGLE_ON();
+                        _delay_ms(10);
+			TOGGLE_OFF();
+                        _delay_ms(990);
+                        /* 10+990 = 1000 */
+                }
+                mcusr >>= 1;
+        }
+
+        /* One long flash. */
+	TOGGLE_ON();
+        _delay_ms(500);
+	TOGGLE_OFF();
+
 	setup_ports();
 	init_leds();
-	for (int i=0; i< 9; i++) {
-		*foo = leds[i].bit;
-	}
+	init_timer();
+	do {
+		static uint8_t counter = 77;
+
+		for (i=0; i< NLEDS; i++) {
+			volatile struct FlashyLEDStatus *fls;
+			const uint8_t *pwmsequence;
+
+			TOGGLE_ON();
+
+			counter ++;
+
+			fls = ledStatuses + i;
+			pwmsequence = (const uint8_t *)
+				pgm_read_word_near(pwmSequences+(counter%NPWMS));
+			cli();
+			fls->pwmSequence = pwmsequence;
+			fls->pwmOnTime = pgm_read_byte_near(pwmsequence);
+			fls->pwmCounter = 0;
+
+			TOGGLE_OFF();
+
+			sei();
+			_delay_ms(100);
+		}
+	} while (1);
 }
 
 
