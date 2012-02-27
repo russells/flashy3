@@ -57,6 +57,10 @@ int main(void)
 
 static void setup_ports(void)
 {
+	/* We want to do this as fast as possible to prevent LEDs flashing
+	   unnecessarily, so do it with interrupts off. */
+	cli();
+
 	LED1DDR |= (1 << LED1R);
 	LED1DDR |= (1 << LED1G);
 	LED1DDR |= (1 << LED1B);
@@ -69,17 +73,25 @@ static void setup_ports(void)
 	LED3DDR |= (1 << LED3G);
 	LED3DDR |= (1 << LED3B);
 
-	LED1PORT &= ~ (1 << LED1R);
-	LED1PORT &= ~ (1 << LED1G);
-	LED1PORT &= ~ (1 << LED1B);
+#ifdef COMMON_ANODE
+#  define S(P,B) P |= (1 << B)
+#else
+#  define S(P,B) P &= ~ (1 << B)
+#endif
 
-	LED2PORT &= ~ (1 << LED2R);
-	LED2PORT &= ~ (1 << LED2G);
-	LED2PORT &= ~ (1 << LED2B);
+	S(LED1PORT, LED1R);
+	S(LED1PORT, LED1G);
+	S(LED1PORT, LED1B);
 
-	LED3PORT &= ~ (1 << LED3R);
-	LED3PORT &= ~ (1 << LED3G);
-	LED3PORT &= ~ (1 << LED3B);
+	S(LED2PORT, LED2R);
+	S(LED2PORT, LED2G);
+	S(LED2PORT, LED2B);
+
+	S(LED3PORT, LED3R);
+	S(LED3PORT, LED3G);
+	S(LED3PORT, LED3B);
+
+	sei();
 }
 
 
