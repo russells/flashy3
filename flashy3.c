@@ -11,6 +11,8 @@
 
 
 static void setup_ports(void);
+static void sleep(void);
+static void sleep_for_ticks(uint8_t ticks);
 #ifdef STARTUP_REASON
 static void startup_reason(void);
 #endif
@@ -49,9 +51,38 @@ int main(void)
 			TOGGLE_OFF();
 
 			sei();
-			_delay_ms(100);
 		}
+		sleep_for_ticks(20);
 	} while (1);
+}
+
+
+static void sleep_for_ticks(uint8_t ticks)
+{
+	timeoutCounter = ticks;
+	while (timeoutCounter) {
+		sleep();
+	}
+}
+
+
+static void sleep(void)
+{
+	uint8_t mcucr;
+
+	/* Idle sleep mode.  Any interrupt can wake us. */
+	mcucr = MCUCR;
+	mcucr &= ~ ((1 << SM1) | (1 << SM0));
+	MCUCR = mcucr;
+
+	MCUCR |= (1 << SE);
+
+	/* Don't separate the following two assembly instructions.  See Atmel's
+	   NOTE03. */
+	__asm__ __volatile__ ("sei" "\n\t" :: );
+	__asm__ __volatile__ ("sleep" "\n\t" :: );
+
+	MCUCR &= ~(1 << SE);
 }
 
 

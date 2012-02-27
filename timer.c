@@ -6,6 +6,9 @@
 #include "toggle-pin.h"
 
 
+uint8_t timeoutCounter = 0;
+
+
 void init_timer(void)
 {
 	// No OC0A or OC0B pin action
@@ -27,6 +30,7 @@ void init_timer(void)
 
 SIGNAL(TIM0_COMPA_vect)
 {
+	static uint8_t counter = 0;
 	uint8_t i;
 
 	//TOGGLE_ON();
@@ -51,6 +55,14 @@ SIGNAL(TIM0_COMPA_vect)
 			} else {
 				led_on(i);
 			}
+		}
+	}
+
+	if (timeoutCounter) {
+		counter ++;
+		if (counter >= 100) {
+			counter = 0;
+			timeoutCounter --;
 		}
 	}
 
