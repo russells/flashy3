@@ -30,27 +30,39 @@ int main(void)
 	init_leds();
 	init_timer();
 	do {
-		static uint8_t counter = 77;
+		static uint8_t counter = 0;
 
 		for (i=0; i< NLEDS; i++) {
 			volatile struct FlashyLEDStatus *fls;
 			const uint8_t *pwmsequence;
 
-			TOGGLE_ON();
-
-			counter ++;
+			//TOGGLE_ON();
 
 			fls = ledStatuses + i;
+			do {
+				cli();
+				pwmsequence = fls->pwmSequence;
+				sei();
+				if (! pwmsequence) {
+					break;
+				} else {
+					sleep_for_ticks(2);
+				}
+			} while (1);
 			pwmsequence = (const uint8_t *)
-				pgm_read_word_near(pwmSequences+(counter%NPWMS));
+				pgm_read_word_near(pwmSequences + counter);
 			cli();
 			fls->pwmSequence = pwmsequence;
 			fls->pwmOnTime = pgm_read_byte_near(pwmsequence);
 			fls->pwmCounter = 0;
-
-			TOGGLE_OFF();
-
 			sei();
+
+			//TOGGLE_OFF();
+
+		}
+		counter ++;
+		if (counter >= NPWMS) {
+			counter = 0;
 		}
 		sleep_for_ticks(20);
 	} while (1);

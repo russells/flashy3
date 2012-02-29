@@ -33,7 +33,7 @@ SIGNAL(TIM0_COMPA_vect)
 	static uint8_t counter = 0;
 	uint8_t i;
 
-	//TOGGLE_ON();
+	TOGGLE_ON();
 
 	for (i=0; i<NLEDS; i++) {
 		volatile struct FlashyLEDStatus *ls = ledStatuses + i;
@@ -66,5 +66,5 @@ SIGNAL(TIM0_COMPA_vect)
 		}
 	}
 
-	//TOGGLE_OFF();
+	TOGGLE_OFF();
 }
