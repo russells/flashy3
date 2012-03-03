@@ -33,9 +33,11 @@ STARTUP_REASON_FLAG =
 endif
 
 ifdef COMMON_ANODE
-COMMON_ANODE_FLAG = -DCOMMON_ANODE
+COMMON_DIODE_FLAG = -DCOMMON_ANODE
 else
-COMMON_ANODE_FLAG =
+ifdef COMMON_CATHODE
+COMMON_DIODE_FLAG = -DCOMMON_CATHODE
+endif
 endif
 
 
@@ -44,7 +46,7 @@ EXTRA_LINK_FLAGS = -Wl,-Map,$(PROGRAMMAPFILE),--cref
 CFLAGS  = -c -gdwarf-2 -std=gnu99 -Os -fsigned-char -fshort-enums \
 	-Wno-attributes \
 	$(STARTUP_REASON_FLAG) \
-	$(COMMON_ANODE_FLAG) \
+	$(COMMON_DIODE_FLAG) \
 	-mmcu=$(MCU) -Wall -Werror -o$@
 LINKFLAGS = -gdwarf-2 -Os -mmcu=$(MCU)
 

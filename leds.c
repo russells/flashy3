@@ -73,7 +73,11 @@ void led_on(uint8_t lednumber)
 #ifdef COMMON_ANODE
 	pin_low(lednumber);
 #else
+#ifdef COMMON_CATHODE
 	pin_high(lednumber);
+#else
+#  error Need to #define COMMON_ANODE or COMMON_CATHODE
+#endif
 #endif
 }
 
@@ -88,7 +92,11 @@ void led_off(uint8_t lednumber)
 #ifdef COMMON_ANODE
 	pin_high(lednumber);
 #else
+#ifdef COMMON_CATHODE
 	pin_low(lednumber);
+#else
+#  error Need to #define COMMON_ANODE or COMMON_CATHODE
+#endif
 #endif
 }
 

@@ -119,7 +119,11 @@ static void setup_ports(void)
 #ifdef COMMON_ANODE
 #  define S(P,B) P |= (1 << B)
 #else
+#ifdef COMMON_CATHODE
 #  define S(P,B) P &= ~ (1 << B)
+#else
+#  error Need to #define COMMON_ANODE or COMMON_CATHODE
+#endif
 #endif
 
 	S(LED1PORT, LED1R);
