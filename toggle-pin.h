@@ -12,7 +12,7 @@
  *
  * The first statement in each interrupt handler should be
  * @code
- *    TOGGLE_PORT |= ~ (1 << TOGGLE_PIN);
+ *    TOGGLE_ON();
  * @endcode
  *
  * This will raise the pin, and that pin will stay high until AVR_sleep()
@@ -51,7 +51,10 @@
  *
  * Call this at the start of the activity you wish to record.
  */
-#define TOGGLE_ON() TOGGLE_PORT |= (1 << TOGGLE_PIN)
+#define TOGGLE_ON()					\
+	do {						\
+		TOGGLE_PORT |= (1 << TOGGLE_PIN);	\
+	} while (0)
 
 
 /**
@@ -59,7 +62,10 @@
  *
  * Call this at the end of the activity you wish to record.
  */
-#define TOGGLE_OFF() TOGGLE_PORT &= (~ (1 << TOGGLE_PIN))
+#define TOGGLE_OFF()					\
+	do {						\
+		TOGGLE_PORT &= (~ (1 << TOGGLE_PIN));	\
+	} while (0)
 
 
 /**
@@ -75,7 +81,7 @@
  *
  * @todo Also make all the IO pins inputs with pullups off.
  */
-#define TOGGLE(n) {						\
+#define TOGGLE(n) do {						\
 		TOGGLE_DDR  |= (1<<2);				\
 		TOGGLE_PORT |= (1<<2);				\
 		cli();						\
@@ -84,6 +90,6 @@
 			TOGGLE_PORT ^= (1 << TOGGLE_PIN);	\
 			_delay_ms(n);				\
 		}						\
-	}
+	} while (0)
 
 #endif
