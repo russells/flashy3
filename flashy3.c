@@ -11,7 +11,6 @@
 #include <stdlib.h>
 
 
-void flash_nleds(void);
 static void setup_ports(void);
 static void sleep(void);
 static void turn_on_a_random_led(void);
@@ -49,21 +48,6 @@ int main(void)
 			}
 		}
 		sleep_for_ticks(2);
-	}
-}
-
-
-void flash_nleds(void)
-{
-	uint8_t nledson = getNLEDsOn();
-
-	/* A flash for each LED on */
-	while (nledson) {
-		TOGGLE_OFF();
-		_delay_us(2);
-		TOGGLE_ON();
-		_delay_us(2);
-		nledson--;
 	}
 }
 
@@ -178,8 +162,6 @@ static void sleep_for_ticks(uint8_t ticks)
 static void sleep(void)
 {
 	uint8_t mcucr;
-
-	flash_nleds();
 
 	/* Idle sleep mode.  Any interrupt can wake us. */
 	mcucr = MCUCR;
