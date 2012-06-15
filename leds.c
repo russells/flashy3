@@ -1,5 +1,6 @@
 #include "leds.h"
 #include "asserts.h"
+#include <avr/interrupt.h>
 
 
 const uint8_t pwm0[] PROGMEM = {
@@ -43,7 +44,6 @@ const uint8_t *pwmSequences[] PROGMEM = {
 	pwm0, pwm1, pwm2, pwm3, pwm4,
 };
 
-
 ASSERT_COMPILE( sizeof(pwmSequences) / sizeof(uint8_t **)
 		== NPWMS);
 
@@ -54,8 +54,80 @@ volatile struct FlashyLEDStatus ledStatuses[NLEDS];
 ASSERT_COMPILE( sizeof(ledStatuses) / sizeof(struct FlashyLEDStatus) == NLEDS);
 
 
+/**
+ * Count of the number of LEDs turned on.
+ *
+ * Needs to be carefully managed.  Only change this with interrupts disabled.
+ * Because it is a single byte, it can be read without disabling interrupts.
+ */
+static volatile uint8_t nLEDsOn;
+
+
 void init_leds(void)
 {
+	nLEDsOn = 0;
+	for (uint8_t i=0; i<NLEDS; i++) {
+		ledStatuses[i].pwmSequence = 0;
+		ledStatuses[i].pwmOnTime = 0;
+		ledStatuses[i].pwmCounter = 0;
+	}
+}
+
+
+uint8_t getNLEDsOn(void)
+{
+	//return nLEDsOn;
+	uint8_t number = 0;
+	uint8_t i;
+	uint8_t sreg;
+
+	sreg = SREG;
+	cli();
+	for (i=0; i<NLEDS; i++) {
+		if (led_is_on(i))
+			number ++;
+	}
+	SREG = sreg;
+	return number;
+}
+
+
+void incLEDsOn(void)
+{
+	uint8_t sreg;
+
+	sreg = SREG;
+	cli();
+	nLEDsOn ++;
+	SREG = sreg;
+}
+
+
+void decLEDsOn(void)
+{
+	uint8_t sreg;
+
+	sreg = SREG;
+	cli();
+	nLEDsOn --;
+	SREG = sreg;
+}
+
+
+uint8_t led_is_on(uint8_t led)
+{
+	uint8_t sreg;
+	uint8_t ret;
+
+	sreg = SREG;
+	cli();
+	if (ledStatuses[led].pwmSequence) {
+		ret = 1;
+	} else {
+		ret = 0;
+	}
+	SREG = sreg;
+	return ret;
 }
 
 

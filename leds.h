@@ -55,7 +55,11 @@ extern volatile struct FlashyLEDStatus ledStatuses[];
 
 
 void init_leds(void);
+uint8_t getNLEDsOn(void);
+void incLEDsOn(void);
+void decLEDsOn(void);
 void led_on(uint8_t led);
 void led_off(uint8_t led);
+uint8_t led_is_on(uint8_t led);
 
 #endif

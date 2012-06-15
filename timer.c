@@ -6,7 +6,7 @@
 #include "toggle-pin.h"
 
 
-uint8_t timeoutCounter = 0;
+volatile uint8_t timeoutCounter = 0;
 
 
 void init_timer(void)
@@ -33,6 +33,8 @@ SIGNAL(TIM0_COMPA_vect)
 	static uint8_t counter = 0;
 	uint8_t i;
 
+	/* Turn on the toggle pin so we can see how much time is spent being
+	   awake. */
 	TOGGLE_ON();
 
 	for (i=0; i<NLEDS; i++) {
@@ -52,6 +54,7 @@ SIGNAL(TIM0_COMPA_vect)
 				ls->pwmSequence = 0;
 				ls->pwmCounter = 0;
 				ls->pwmOnTime = 0;
+				decLEDsOn();
 			} else {
 				led_on(i);
 			}
@@ -65,6 +68,4 @@ SIGNAL(TIM0_COMPA_vect)
 			timeoutCounter --;
 		}
 	}
-
-	TOGGLE_OFF();
 }

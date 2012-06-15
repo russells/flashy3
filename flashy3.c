@@ -8,18 +8,25 @@
 #include "leds.h"
 #include "timer.h"
 #include "toggle-pin.h"
+#include <stdlib.h>
 
 
+void flash_nleds(void);
 static void setup_ports(void);
 static void sleep(void);
+static void turn_on_a_random_led(void);
+static void turn_on_a_group_of_three_leds(void);
+static void turn_on_three_same_colour_leds(void);
+static void set_pwmsequence(volatile struct FlashyLEDStatus *fls,
+			    const uint8_t *pwmsequence);
 static void sleep_for_ticks(uint8_t ticks);
+static uint8_t randbyte(uint8_t limit);
 #ifdef STARTUP_REASON
 static void startup_reason(void);
 #endif
 
 int main(void)
 {
-	uint8_t i;
 	TOGGLE_BEGIN();
 
 #ifdef STARTUP_REASON
@@ -29,51 +36,141 @@ int main(void)
 	setup_ports();
 	init_leds();
 	init_timer();
+
+	for (;;) {
+		if (getNLEDsOn() < 2) {
+			uint8_t index = randbyte(250);
+			if (index > 200) {
+				turn_on_a_group_of_three_leds();
+			} else if (index > 150) {
+				turn_on_three_same_colour_leds();
+			} else {
+				turn_on_a_random_led();
+			}
+		}
+		sleep_for_ticks(2);
+	}
+}
+
+
+void flash_nleds(void)
+{
+	uint8_t nledson = getNLEDsOn();
+
+	/* A flash for each LED on */
+	while (nledson) {
+		TOGGLE_OFF();
+		_delay_us(2);
+		TOGGLE_ON();
+		_delay_us(2);
+		nledson--;
+	}
+}
+
+
+static void turn_on_a_random_led(void)
+{
+	uint8_t lednumber;
+	uint8_t pwmnumber;
+	volatile struct FlashyLEDStatus *fls;
+	const uint8_t *pwmsequence;
+
 	do {
-		static uint8_t counter = 0;
+		lednumber = randbyte(NLEDS);
+	} while (led_is_on(lednumber));
+	fls = ledStatuses + lednumber;
+	pwmnumber = randbyte(NPWMS);
+	pwmsequence = (const uint8_t *)
+		pgm_read_word_near(pwmSequences + pwmnumber);
+	set_pwmsequence(fls, pwmsequence);
+}
 
-		for (i=0; i< NLEDS; i++) {
-			volatile struct FlashyLEDStatus *fls;
-			const uint8_t *pwmsequence;
 
-			//TOGGLE_ON();
+static void turn_on_a_group_of_three_leds(void)
+{
+	uint8_t base;
+	uint8_t pwmnumber;
+	volatile struct FlashyLEDStatus *fls;
+	const uint8_t *pwmsequence;
 
-			fls = ledStatuses + i;
-			do {
-				cli();
-				pwmsequence = fls->pwmSequence;
-				sei();
-				if (! pwmsequence) {
-					break;
-				} else {
-					sleep_for_ticks(2);
-				}
-			} while (1);
-			pwmsequence = (const uint8_t *)
-				pgm_read_word_near(pwmSequences + counter);
-			cli();
-			fls->pwmSequence = pwmsequence;
-			fls->pwmOnTime = pgm_read_byte_near(pwmsequence);
-			fls->pwmCounter = 0;
-			sei();
+	base = randbyte(NLEDS-2);
+	fls = ledStatuses + base;
+	pwmnumber = randbyte(NPWMS);
+	pwmsequence = (const uint8_t *)
+		pgm_read_word_near(pwmSequences + pwmnumber);
+	/* Do this with interrupts off so we can guarantee that the three LEDs
+	   start the PWM sequence at the same point. */
+	cli();
+	set_pwmsequence(fls, pwmsequence);
+	fls++;
+	set_pwmsequence(fls, pwmsequence);
+	fls++;
+	set_pwmsequence(fls, pwmsequence);
+	sei();
+}
 
-			//TOGGLE_OFF();
 
-		}
-		counter ++;
-		if (counter >= NPWMS) {
-			counter = 0;
-		}
-		sleep_for_ticks(20);
-	} while (1);
+static void turn_on_three_same_colour_leds(void)
+{
+	uint8_t colour;		/* R=0, G=1, B=2 */
+	uint8_t pwmnumber;
+	volatile struct FlashyLEDStatus *fls;
+	const uint8_t *pwmsequence;
+
+	colour = randbyte(3);
+	fls = ledStatuses + colour;
+	pwmnumber = randbyte(NPWMS);
+	pwmsequence = (const uint8_t *)
+		pgm_read_word_near(pwmSequences + pwmnumber);
+	/** @see turn_on_a_group_of_three_leds()  */
+	cli();
+	set_pwmsequence(fls, pwmsequence);
+	fls += 3;
+	set_pwmsequence(fls, pwmsequence);
+	fls += 3;
+	set_pwmsequence(fls, pwmsequence);
+	sei();
+}
+
+
+static void set_pwmsequence(volatile struct FlashyLEDStatus *fls,
+			    const uint8_t *pwmsequence)
+{
+	uint8_t sreg;
+
+	sreg = SREG;
+	cli();
+	if ((! fls->pwmSequence) && pwmsequence) {
+		incLEDsOn();
+	}
+	fls->pwmSequence = pwmsequence;
+	fls->pwmOnTime = pgm_read_byte_near(pwmsequence);
+	fls->pwmCounter = 0;
+	SREG = sreg;
+}
+
+
+static uint8_t randbyte(uint8_t limit)
+{
+	uint8_t ret;
+
+	ret = (uint8_t)random();
+	if (limit)
+		ret %= limit;
+	return ret;
 }
 
 
 static void sleep_for_ticks(uint8_t ticks)
 {
+	// Turn off interrupts here to avoid race conditions.
 	timeoutCounter = ticks;
-	while (timeoutCounter) {
-		sleep();
+	while (1) {
+		if (timeoutCounter) {
+			sleep();
+		} else {
+			return;
+		}
 	}
 }
 
@@ -82,12 +179,17 @@ static void sleep(void)
 {
 	uint8_t mcucr;
 
+	flash_nleds();
+
 	/* Idle sleep mode.  Any interrupt can wake us. */
 	mcucr = MCUCR;
 	mcucr &= ~ ((1 << SM1) | (1 << SM0));
 	MCUCR = mcucr;
 
 	MCUCR |= (1 << SE);
+
+	/* Turn off the toggle pin so we know the CPU is sleeping. */
+	TOGGLE_OFF();
 
 	/* Don't separate the following two assembly instructions.  See Atmel's
 	   NOTE03. */

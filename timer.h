@@ -13,7 +13,7 @@
  * No action is automatically taken when this counter reaches zero.  It's up to
  * the main loop to monitor the value and take action.
  */
-extern uint8_t timeoutCounter;
+extern volatile uint8_t timeoutCounter;
 
 void init_timer(void);
 
