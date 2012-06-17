@@ -37,6 +37,22 @@ int main(void)
 	init_leds();
 	init_timer();
 
+	volatile struct FlashyLEDStatus *fls = ledStatuses;
+	const uint8_t *pwmsequence = (const uint8_t *)
+		pgm_read_word_near(pwmSequences);
+	for (uint8_t i=0; i<NLEDS; i++) {
+		set_pwmsequence(fls, pwmsequence);
+		// We have to wait for the sequence to get started...
+		while (getTotalPWMBrightness() < 4) {
+			sleep_for_ticks(2);
+		}
+		// ... then we wait for it to almost stop.
+		while (getTotalPWMBrightness() > 3) {
+			sleep_for_ticks(1);
+		}
+		fls++;
+	}
+
 	for (;;) {
 		if (getNLEDsOn() < 3 || getTotalPWMBrightness() < 10) {
 			uint8_t index = randbyte(250);
