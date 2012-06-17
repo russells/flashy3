@@ -14,7 +14,7 @@ void init_timer(void)
 	// No OC0A or OC0B pin action
 	// CTC mode
 	// Clock = CLKio/64
-	// Count to 16 for approx 1kHz interrupts
+	// Count to 10 for approx 1.5kHz interrupts
 
 	cli();
 	TCCR0A =(0b00 << COM0A0) |
@@ -22,7 +22,7 @@ void init_timer(void)
 		(0b10 << WGM00);
 	TCCR0B =(0 << WGM02) |
 		(0b011 << CS00);
-	OCR0A = 16;
+	OCR0A = 10;
 	TIMSK0 = (1 << OCIE0A);
 	sei();
 }

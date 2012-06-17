@@ -14,8 +14,9 @@
 static void setup_ports(void);
 static void sleep(void);
 static void turn_on_a_random_led(void);
-static void turn_on_a_group_of_three_leds(void);
+static void turn_on_a_group_of_leds(uint8_t n);
 static void turn_on_three_same_colour_leds(void);
+static void turn_on_rgb_leds(void);
 static void set_pwmsequence(volatile struct FlashyLEDStatus *fls,
 			    const uint8_t *pwmsequence);
 static void sleep_for_ticks(uint8_t ticks);
@@ -37,17 +38,23 @@ int main(void)
 	init_timer();
 
 	for (;;) {
-		if (getNLEDsOn() < 2) {
+		if (getNLEDsOn() < 3 || getTotalPWMBrightness() < 10) {
 			uint8_t index = randbyte(250);
-			if (index > 200) {
-				turn_on_a_group_of_three_leds();
+			if (index >= 220) {
+				turn_on_rgb_leds();
+			} else if (index > 200) {
+				turn_on_a_group_of_leds(5);
 			} else if (index > 150) {
+				turn_on_a_group_of_leds(4);
+			} else if (index > 100) {
+				turn_on_a_group_of_leds(3);
+			} else if (index > 90) {
 				turn_on_three_same_colour_leds();
 			} else {
 				turn_on_a_random_led();
 			}
 		}
-		sleep_for_ticks(2);
+		sleep_for_ticks(1);
 	}
 }
 
@@ -70,26 +77,29 @@ static void turn_on_a_random_led(void)
 }
 
 
-static void turn_on_a_group_of_three_leds(void)
+static void turn_on_a_group_of_leds(uint8_t n)
 {
 	uint8_t base;
 	uint8_t pwmnumber;
 	volatile struct FlashyLEDStatus *fls;
 	const uint8_t *pwmsequence;
+	uint8_t i;
 
-	base = randbyte(NLEDS-2);
-	fls = ledStatuses + base;
+	base = randbyte(NLEDS);
 	pwmnumber = randbyte(NPWMS);
 	pwmsequence = (const uint8_t *)
 		pgm_read_word_near(pwmSequences + pwmnumber);
-	/* Do this with interrupts off so we can guarantee that the three LEDs
-	   start the PWM sequence at the same point. */
+	/* Do this with interrupts off so we can guarantee that the LEDs start
+	   the PWM sequence at the same point. */
 	cli();
-	set_pwmsequence(fls, pwmsequence);
-	fls++;
-	set_pwmsequence(fls, pwmsequence);
-	fls++;
-	set_pwmsequence(fls, pwmsequence);
+	for (i=0; i<n; i++) {
+		fls = ledStatuses + base;
+		set_pwmsequence(fls, pwmsequence);
+		base++;
+		if (base >= NLEDS) {
+			base = 0;
+		}
+	}
 	sei();
 }
 
@@ -106,13 +116,53 @@ static void turn_on_three_same_colour_leds(void)
 	pwmnumber = randbyte(NPWMS);
 	pwmsequence = (const uint8_t *)
 		pgm_read_word_near(pwmSequences + pwmnumber);
-	/** @see turn_on_a_group_of_three_leds()  */
+	/* Do this with interrupts off so we can guarantee that the LEDs start
+	   the PWM sequence at the same point. */
 	cli();
 	set_pwmsequence(fls, pwmsequence);
 	fls += 3;
 	set_pwmsequence(fls, pwmsequence);
 	fls += 3;
 	set_pwmsequence(fls, pwmsequence);
+	sei();
+}
+
+
+static void turn_on_rgb_leds(void)
+{
+	uint8_t pwmnumber;
+	const uint8_t *pwmsequence;
+	uint8_t start;
+	volatile struct FlashyLEDStatus *fls_r;
+	volatile struct FlashyLEDStatus *fls_g;
+	volatile struct FlashyLEDStatus *fls_b;
+
+	pwmnumber = randbyte(NPWMS);
+	pwmsequence = (const uint8_t *)
+		pgm_read_word_near(pwmSequences + pwmnumber);
+	start = randbyte(3);
+	switch (start) {
+	case 0:
+		fls_r = ledStatuses;
+		fls_g = ledStatuses + 4;
+		fls_b = ledStatuses + 8;
+		break;
+	case 1:
+		fls_r = ledStatuses + 1;
+		fls_g = ledStatuses + 5;
+		fls_b = ledStatuses + 6;
+		break;
+	default:
+		fls_r = ledStatuses + 2;
+		fls_g = ledStatuses + 3;
+		fls_b = ledStatuses + 7;
+		break;
+	}
+
+	cli();
+	set_pwmsequence(fls_r, pwmsequence);
+	set_pwmsequence(fls_g, pwmsequence);
+	set_pwmsequence(fls_b, pwmsequence);
 	sei();
 }
 

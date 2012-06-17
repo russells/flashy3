@@ -10,11 +10,16 @@ const uint8_t pwm0[] PROGMEM = {
 };
 
 const uint8_t pwm1[] PROGMEM = {
-	1, 2, 3, 4, 5, 7, 10, 15, 10, 7, 5, 4, 3, 2, 1, 0,
+	1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 15, 15,
+	15, 15, 10, 9, 9, 8, 8, 7, 7, 6, 6, 5, 4, 4, 3, 2, 2, 1, 0,
 };
 
 const uint8_t pwm2[] PROGMEM = {
-	1, 2, 5, 10, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 10, 5, 2, 1, 0,
+	1, 2, 5, 10,
+	15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+	10, 5, 2, 1, 0,
 };
 
 const uint8_t pwm3[] PROGMEM = {
@@ -24,6 +29,7 @@ const uint8_t pwm3[] PROGMEM = {
 	6,6,7,6,7,6, 7,7,8,7,8,7,
 	8,8,9,8,9,8, 9,9,
 	10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18,19,19,
+	19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
 	19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
 	19,19,18,18,17,17,16,16,15,15,14,14,13,13,12,12,11,11,10,10,
 	9,9,
@@ -35,6 +41,7 @@ const uint8_t pwm3[] PROGMEM = {
 
 const uint8_t pwm4[] PROGMEM = {
 	1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,
+	9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
 	9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
 	9,9,8,8,7,7,6,6,5,5,4,4,3,3,2,2,1,1,0,
 };
@@ -61,6 +68,9 @@ ASSERT_COMPILE( sizeof(ledStatuses) / sizeof(struct FlashyLEDStatus) == NLEDS);
  * Because it is a single byte, it can be read without disabling interrupts.
  */
 static volatile uint8_t nLEDsOn;
+
+
+static uint8_t getPWMBrightness(uint8_t led);
 
 
 void init_leds(void)
@@ -91,6 +101,32 @@ uint8_t getNLEDsOn(void)
 	return number;
 }
 
+
+/**
+ * Get the total brightness of the LEDs, expressed as a PWM value.
+ *
+ * Returns a maximum of 100.
+ */
+uint8_t getTotalPWMBrightness(void)
+{
+	uint8_t ret = 0;
+	uint8_t sreg;
+	uint8_t i;
+
+	sreg = SREG;
+	cli();
+	for (i=0; i<NLEDS; i++) {
+		uint8_t br = getPWMBrightness(i);
+		ret += br;
+		if (ret >= 100) {
+			ret = 100;
+			break;
+		}
+	}
+
+	SREG = sreg;
+	return ret;
+}
 
 void incLEDsOn(void)
 {
@@ -123,6 +159,23 @@ uint8_t led_is_on(uint8_t led)
 	cli();
 	if (ledStatuses[led].pwmSequence) {
 		ret = 1;
+	} else {
+		ret = 0;
+	}
+	SREG = sreg;
+	return ret;
+}
+
+
+static uint8_t getPWMBrightness(uint8_t led)
+{
+	uint8_t sreg;
+	uint8_t ret;
+
+	sreg = SREG;
+	cli();
+	if (ledStatuses[led].pwmSequence) {
+		ret = pgm_read_byte_near(ledStatuses[led].pwmSequence);
 	} else {
 		ret = 0;
 	}
