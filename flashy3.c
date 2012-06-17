@@ -200,11 +200,33 @@ static void set_pwmsequence(volatile struct FlashyLEDStatus *fls,
 }
 
 
+/**
+ * Return a random byte in the interval 0..limit-1.
+ *
+ * We use the C library's random() to give us a 32 bit random number, and then
+ * feed those four bytes back as required.  This way we call random() only each
+ * fourth time a byte is required.
+ *
+ * This is important because random() takes a fairly long time on this CPU.
+ * The program had been observed to take up to 37 milliseconds to go back to
+ * sleep after an interrupt (before this change), which meant that up to 50
+ * interrupts were being handled in that time, before the setup for the next
+ * sequence was finished.  After this change, the longest period observed
+ * between interrupt and sleep was around 10 milliseconds.
+ */
 static uint8_t randbyte(uint8_t limit)
 {
+	static uint8_t counter=5;
+	static uint32_t r;
+	uint8_t *retp;
 	uint8_t ret;
 
-	ret = (uint8_t)random();
+	if (counter >= 4) {
+		r = random();
+		counter = 0;
+	}
+	retp = (uint8_t *)(&r);
+	ret = retp[counter++];
 	if (limit)
 		ret %= limit;
 	return ret;
