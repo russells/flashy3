@@ -54,7 +54,7 @@ int main(void)
 	}
 
 	for (;;) {
-		if (getNLEDsOn() < 3 || getTotalPWMBrightness() < 10) {
+		if (getTotalPWMBrightness() < 10) {
 			uint8_t index = randbyte(250);
 			if (index >= 220) {
 				turn_on_rgb_leds();

@@ -84,24 +84,6 @@ void init_leds(void)
 }
 
 
-uint8_t getNLEDsOn(void)
-{
-	//return nLEDsOn;
-	uint8_t number = 0;
-	uint8_t i;
-	uint8_t sreg;
-
-	sreg = SREG;
-	cli();
-	for (i=0; i<NLEDS; i++) {
-		if (led_is_on(i))
-			number ++;
-	}
-	SREG = sreg;
-	return number;
-}
-
-
 /**
  * Get the total brightness of the LEDs, expressed as a PWM value.
  *
