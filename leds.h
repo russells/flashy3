@@ -50,7 +50,7 @@ struct FlashyLEDStatus {
 #define MAX_PWM_TIME 20
 
 
-extern const uint8_t *pwmSequences[] PROGMEM;
+extern const uint8_t *const pwmSequences[] PROGMEM;
 extern volatile struct FlashyLEDStatus ledStatuses[];
 
 

@@ -47,7 +47,7 @@ const uint8_t pwm4[] PROGMEM = {
 };
 
 
-const uint8_t *pwmSequences[] PROGMEM = {
+const uint8_t *const pwmSequences[] PROGMEM = {
 	pwm0, pwm1, pwm2, pwm3, pwm4,
 };
 
