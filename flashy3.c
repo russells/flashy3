@@ -26,8 +26,11 @@ static uint8_t randbyte(uint8_t limit);
 static void startup_reason(void);
 #endif
 
+
 int main(void)
 {
+	uint16_t random_seed = 73; /* (V)(;,,;)(V) */
+
 	/* Latch the power switch as early as possible. */
 	switch_latch();
 
@@ -53,9 +56,12 @@ int main(void)
 		// ... then we wait for it to almost stop.
 		while (getTotalPWMBrightness() > 3) {
 			sleep_for_ticks(1);
+			random_seed += get_10_bit_button_adc();
 		}
 		fls++;
 	}
+
+	srandom(random_seed);
 
 	for (;;) {
 		if (getTotalPWMBrightness() < 10) {

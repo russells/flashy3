@@ -78,3 +78,22 @@ void switch_and_timeout_check(void)
 	}
 }
 
+
+uint16_t get_10_bit_button_adc(void)
+{
+	uint8_t adcl;
+	uint8_t adch;
+	uint16_t ret;
+
+	ADCSRA |= (1 << ADSC);
+	do {
+		/* nothing */
+	} while (ADCSRA & (1 << ADSC));
+
+	adcl = ADCL;
+	adch = ADCH;
+	ret = adch;
+	ret <<= 2;
+	ret |= (adcl >> 6);
+	return ret;
+}

@@ -1,6 +1,8 @@
 #ifndef switch_and_timeout_h_INCLUDED
 #define switch_and_timeout_h_INCLUDED
 
+#include <stdint.h>
+
 /**
  * Latch the power switch on.
  *
@@ -18,5 +20,10 @@ void switch_latch(void);
  * A long time is something like 15 minutes.
  */
 void switch_and_timeout_check(void);
+
+/**
+ * Get sort-of random 10 bit numbers from the button ADC.
+ */
+uint16_t get_10_bit_button_adc(void);
 
 #endif
