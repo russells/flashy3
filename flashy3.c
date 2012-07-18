@@ -6,6 +6,7 @@
 #include "cpu-speed.h"
 #include <util/delay.h>
 #include "leds.h"
+#include "switch-and-timeout.h"
 #include "timer.h"
 #include "toggle-pin.h"
 #include <stdlib.h>
@@ -27,6 +28,9 @@ static void startup_reason(void);
 
 int main(void)
 {
+	/* Latch the power switch as early as possible. */
+	switch_latch();
+
 	TOGGLE_BEGIN();
 
 #ifdef STARTUP_REASON
@@ -235,11 +239,39 @@ static uint8_t randbyte(uint8_t limit)
 
 static void sleep_for_ticks(uint8_t ticks)
 {
-	// Turn off interrupts here to avoid race conditions.
+	static uint8_t switchCheckCounter = 0;
+
 	timeoutCounter = ticks;
 	while (1) {
 		if (timeoutCounter) {
 			sleep();
+			switchCheckCounter ++;
+			/* We get about 1500 interrupts per second, so checking
+			   the switch every 50th time means about 30 times per
+			   second.  The real rate will be less than that, as
+			   some main loop actions take much longer than 1/1500
+			   second, and we don't get back here for quite a
+			   while. */
+			/* Note that this is very different to timeoutCounter.
+			   timeoutCounter is decremented every so often in the
+			   interrupt handler.  The interrupt handler still gets
+			   called while the main loop is running, regardless of
+			   how long the main loop takes - potentially dozens of
+			   interrupts can happen before the main loop is
+			   finished doing stuff and tries to go to sleep again,
+			   and timeoutCounter is getting decremented
+			   periodically even while that happens.
+			   switchCheckCounter only gets incremented when the
+			   main loop has gone to sleep and woken up again.
+			   Often this will happen with every interrupt, but if
+			   the main loop is busy doing stuff, that will only
+			   happen again when the main loop is finished for a
+			   while and calls back here.  That's why it's only
+			   approximately 30 times a second. */
+			if (50 == switchCheckCounter) {
+				switch_and_timeout_check();
+				switchCheckCounter = 0;
+			}
 		} else {
 			return;
 		}
