@@ -51,11 +51,11 @@ int main(void)
 		set_pwmsequence(fls, pwmsequence);
 		// We have to wait for the sequence to get started...
 		while (getTotalPWMBrightness() < 4) {
-			sleep_for_ticks(2);
+			//sleep_for_ticks(2);
 		}
 		// ... then we wait for it to almost stop.
-		while (getTotalPWMBrightness() > 3) {
-			sleep_for_ticks(1);
+		while (getTotalPWMBrightness() > 1) {
+			//sleep_for_ticks(1);
 			random_seed += get_10_bit_button_adc();
 		}
 		fls++;
@@ -252,10 +252,10 @@ static void sleep_for_ticks(uint8_t ticks)
 		if (timeoutCounter) {
 			sleep();
 			switchCheckCounter ++;
-			/* We get about 1500 interrupts per second, so checking
-			   the switch every 50th time means about 30 times per
+			/* We get about 2500 interrupts per second, so checking
+			   the switch every 50th time means about 50 times per
 			   second.  The real rate will be less than that, as
-			   some main loop actions take much longer than 1/1500
+			   some main loop actions take much longer than 1/2500
 			   second, and we don't get back here for quite a
 			   while. */
 			/* Note that this is very different to timeoutCounter.
@@ -273,7 +273,7 @@ static void sleep_for_ticks(uint8_t ticks)
 			   the main loop is busy doing stuff, that will only
 			   happen again when the main loop is finished for a
 			   while and calls back here.  That's why it's only
-			   approximately 30 times a second. */
+			   approximately 50 times a second. */
 			if (50 == switchCheckCounter) {
 				switch_and_timeout_check();
 				switchCheckCounter = 0;
@@ -297,7 +297,7 @@ static void sleep(void)
 	MCUCR |= (1 << SE);
 
 	/* Turn off the toggle pin so we know the CPU is sleeping. */
-	TOGGLE_OFF();
+	//TOGGLE_OFF();
 
 	/* Don't separate the following two assembly instructions.  See Atmel's
 	   NOTE03. */
