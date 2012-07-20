@@ -1,4 +1,4 @@
-#include "switch-and-timeout.h"
+#include "switch.h"
 #include <avr/io.h>
 
 
@@ -22,15 +22,11 @@ void switch_latch(void)
 }
 
 
-static void switch_off(void)
+void switch_off(void)
 {
 	PORTB |= (1 << 7);
 }
 
-
-/* Switch off in 15 minutes. */
-#define OFF_TIME 15
-#define OFF_COUNT (30 * 60 * OFF_TIME)
 
 /* Anything more than this and we assume the button is released.  The value is
    about 1/10 of the reference at eight bit resolution, which is about 0.11V
@@ -47,14 +43,9 @@ static void switch_off(void)
 
 void switch_and_timeout_check(void)
 {
-	static uint16_t off_counter = 0;
 	static uint8_t button_released_counter = 3;
 	uint8_t button_value;
 
-	off_counter ++;
-	if (off_counter > OFF_COUNT) {
-		switch_off();
-	}
 	ADCSRA |= (1 << ADSC);
 	do {
 		/* nothing */

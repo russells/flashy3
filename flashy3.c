@@ -6,7 +6,7 @@
 #include "cpu-speed.h"
 #include <util/delay.h>
 #include "leds.h"
-#include "switch-and-timeout.h"
+#include "switch.h"
 #include "timer.h"
 #include "toggle-pin.h"
 #include <stdlib.h>
@@ -253,7 +253,7 @@ static void sleep_for_ticks(uint8_t ticks)
 			sleep();
 			switchCheckCounter ++;
 			/* We get about 2500 interrupts per second, so checking
-			   the switch every 50th time means about 50 times per
+			   the switch every 100th time means about 25 times per
 			   second.  The real rate will be less than that, as
 			   some main loop actions take much longer than 1/2500
 			   second, and we don't get back here for quite a
@@ -273,8 +273,8 @@ static void sleep_for_ticks(uint8_t ticks)
 			   the main loop is busy doing stuff, that will only
 			   happen again when the main loop is finished for a
 			   while and calls back here.  That's why it's only
-			   approximately 50 times a second. */
-			if (50 == switchCheckCounter) {
+			   approximately 25 times a second. */
+			if (100 == switchCheckCounter) {
 				switch_and_timeout_check();
 				switchCheckCounter = 0;
 			}

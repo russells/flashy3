@@ -50,7 +50,7 @@ CFLAGS  = -c -gdwarf-2 -std=gnu99 -Os -fsigned-char -fshort-enums \
 	-mmcu=$(MCU) -Wall -Werror -o$@
 LINKFLAGS = -gdwarf-2 -Os -mmcu=$(MCU)
 
-SRCS = flashy3.c leds.c timer.c switch-and-timeout.c
+SRCS = flashy3.c leds.c timer.c switch.c
 
 OBJS = $(SRCS:.c=.o)
 DEPS = $(SRCS:.c=.d)

@@ -1,5 +1,5 @@
-#ifndef switch_and_timeout_h_INCLUDED
-#define switch_and_timeout_h_INCLUDED
+#ifndef switch_h_INCLUDED
+#define switch_h_INCLUDED
 
 #include <stdint.h>
 
@@ -10,6 +10,14 @@
  * switch_and_timeout_check().
  */
 void switch_latch(void);
+
+/**
+ * Turn off the power switch.
+ *
+ * Call this when the flashy needs to turn off for some reason - either it's
+ * been on for long enough, or the button has been pressed.
+ */
+void switch_off(void);
 
 /**
  * If the button is pressed again, or we've been on for a long time, turn off.

@@ -3,6 +3,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "leds.h"
+#include "switch.h"
 #include "toggle-pin.h"
 
 
@@ -25,6 +26,28 @@ void init_timer(void)
 	OCR0A = 50;
 	TIMSK0 = (1 << OCIE0A);
 	sei();
+}
+
+
+/* Switch off in 15 minutes. */
+#define OFF_TIME 15
+#define HZ 2500
+#define OFF_SECONDS (OFF_TIME * 60)
+
+
+static void off_timer(void)
+{
+	static uint16_t tick_up_counter = 0;
+	static uint16_t second_down_counter = OFF_SECONDS;
+
+	tick_up_counter ++;
+	if (tick_up_counter >= HZ) {
+		tick_up_counter = 0;
+		second_down_counter --;
+		if (! second_down_counter) {
+			switch_off();
+		}
+	}
 }
 
 
@@ -68,5 +91,8 @@ SIGNAL(TIM0_COMPA_vect)
 			timeoutCounter --;
 		}
 	}
+
+	off_timer();
+
 	TOGGLE_OFF();
 }
