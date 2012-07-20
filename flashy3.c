@@ -51,11 +51,11 @@ int main(void)
 		set_pwmsequence(fls, pwmsequence);
 		// We have to wait for the sequence to get started...
 		while (getTotalPWMBrightness() < 4) {
-			//sleep_for_ticks(2);
+			sleep_for_ticks(1);
 		}
 		// ... then we wait for it to almost stop.
 		while (getTotalPWMBrightness() > 1) {
-			//sleep_for_ticks(1);
+			sleep_for_ticks(1);
 			random_seed += get_10_bit_button_adc();
 		}
 		fls++;

@@ -38,11 +38,11 @@ static void switch_off(void)
    drop below 1.5V, so at about 0.8V, way above 0.11V.  This low level was
    chosen because the boost converter can continue to work down to 0.8V, which
    would put the open button voltage around 0.1V. */
-#define BUTTON_RELEASED 85
+#define BUTTON_RELEASED 25
 
 /* Anything less than this makes us assume the button is pressed.  This
-   corresponds to about 100mV, and our button should pull down below that. */
-#define BUTTON_PRESSED 23
+   corresponds to about 50mV, and our button should pull down below that. */
+#define BUTTON_PRESSED 12
 
 
 void switch_and_timeout_check(void)
