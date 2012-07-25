@@ -47,7 +47,23 @@ struct FlashyLEDStatus {
 #define NPWMS 5
 
 
-#define MAX_PWM_TIME 20
+/**
+ * How often each LED is switched on and off per second.
+ *
+ * The product of this and FLASHY_PWM_TIME should match the interrupt rate (in
+ * timer.c).
+ *
+ * @see FLASHY_MAX_PWM_COUNT
+ */
+#define FLASHY_PWM_RATE 50
+
+/**
+ * The maximum brightness level.  There are this many steps inside each period
+ * of the pwm rate.
+ *
+ * @see FLASHY_PWM_RATE
+ */
+#define FLASHY_MAX_PWM_COUNT 50
 
 
 extern const uint8_t *const pwmSequences[] PROGMEM;

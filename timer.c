@@ -69,7 +69,7 @@ SIGNAL(TIM0_COMPA_vect)
 		if (ls->pwmCounter == ls->pwmOnTime) {
 			led_off(i);
 		}
-		if (ls->pwmCounter >= MAX_PWM_TIME) {
+		if (ls->pwmCounter >= FLASHY_MAX_PWM_COUNT) {
 			ls->pwmCounter = 0;
 			ls->pwmSequence ++;
 			ls->pwmOnTime = pgm_read_byte_near(ls->pwmSequence);
@@ -86,7 +86,7 @@ SIGNAL(TIM0_COMPA_vect)
 
 	if (timeoutCounter) {
 		counter ++;
-		if (counter >= 100) {
+		if (counter >= FLASHY_MAX_PWM_COUNT) {
 			counter = 0;
 			timeoutCounter --;
 		}
