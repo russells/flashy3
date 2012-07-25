@@ -20,21 +20,11 @@ volatile struct FlashyLEDStatus ledStatuses[NLEDS];
 ASSERT_COMPILE( sizeof(ledStatuses) / sizeof(struct FlashyLEDStatus) == NLEDS);
 
 
-/**
- * Count of the number of LEDs turned on.
- *
- * Needs to be carefully managed.  Only change this with interrupts disabled.
- * Because it is a single byte, it can be read without disabling interrupts.
- */
-static volatile uint8_t nLEDsOn;
-
-
 static uint8_t getPWMBrightness(uint8_t led);
 
 
 void init_leds(void)
 {
-	nLEDsOn = 0;
 	for (uint8_t i=0; i<NLEDS; i++) {
 		ledStatuses[i].pwmSequence = 0;
 		ledStatuses[i].pwmOnTime = 0;
@@ -67,27 +57,6 @@ uint8_t getTotalPWMBrightness(void)
 
 	SREG = sreg;
 	return ret;
-}
-
-void incLEDsOn(void)
-{
-	uint8_t sreg;
-
-	sreg = SREG;
-	cli();
-	nLEDsOn ++;
-	SREG = sreg;
-}
-
-
-void decLEDsOn(void)
-{
-	uint8_t sreg;
-
-	sreg = SREG;
-	cli();
-	nLEDsOn --;
-	SREG = sreg;
 }
 
 

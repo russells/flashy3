@@ -200,9 +200,6 @@ static void set_pwmsequence(volatile struct FlashyLEDStatus *fls,
 
 	sreg = SREG;
 	cli();
-	if ((! fls->pwmSequence) && pwmsequence) {
-		incLEDsOn();
-	}
 	fls->pwmSequence = pwmsequence;
 	fls->pwmOnTime = pgm_read_byte_near(pwmsequence);
 	fls->pwmCounter = 0;

@@ -77,7 +77,6 @@ SIGNAL(TIM0_COMPA_vect)
 				ls->pwmSequence = 0;
 				ls->pwmCounter = 0;
 				ls->pwmOnTime = 0;
-				decLEDsOn();
 			} else {
 				led_on(i);
 			}
