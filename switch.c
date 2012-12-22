@@ -28,17 +28,20 @@ void switch_off(void)
 }
 
 
-/* Anything more than this and we assume the button is released.  The value is
+/* Anything more than this and we assume the button is pressed.  The value is
    about 1/10 of the reference at eight bit resolution, which is about 0.11V
-   with the 1.1V reference.  The released button should be at about one diode
+   with the 1.1V reference.  The pressed button should be at about one diode
    drop below 1.5V, so at about 0.8V, way above 0.11V.  This low level was
    chosen because the boost converter can continue to work down to 0.8V, which
-   would put the open button voltage around 0.1V. */
-#define BUTTON_RELEASED 25
+   would put the closed button voltage around 0.1V. */
+#define BUTTON_PRESSED_VALUE 25
 
-/* Anything less than this makes us assume the button is pressed.  This
-   corresponds to about 50mV, and our button should pull down below that. */
-#define BUTTON_PRESSED 12
+/* Anything less than this makes us assume the button is released.  This
+   corresponds to about 50mV. */
+#define BUTTON_RELEASED_VALUE 12
+
+#define BUTTON_PRESSED (button_value > BUTTON_PRESSED_VALUE)
+#define BUTTON_RELEASED (button_value < BUTTON_RELEASED_VALUE)
 
 
 void switch_and_timeout_check(void)
@@ -53,7 +56,7 @@ void switch_and_timeout_check(void)
 	button_value = ADCH;
 	if (button_released_counter) {
 		/* Check for button release */
-		if (button_value > BUTTON_RELEASED) {
+		if (BUTTON_RELEASED) {
 			button_released_counter --;
 		} else {
 			/* If we're still waiting for button release and we
@@ -63,7 +66,7 @@ void switch_and_timeout_check(void)
 		}
 	} else {
 		/* Check for button pressed. */
-		if (button_value < BUTTON_PRESSED) {
+		if (BUTTON_PRESSED) {
 			switch_off();
 		}
 	}
